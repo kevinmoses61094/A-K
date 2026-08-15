@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Us — Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#211a2b;
+    --surface:#2b2236;
+    --surface-2:#352a42;
+    --rose:#e8637a;
+    --rose-soft:#e8637a33;
+    --gold:#d9a85c;
+    --text:#f3ece7;
+    --text-muted:#a596ac;
+    --line:#3c3149;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:#141019;
+    font-family:'Manrope',sans-serif;
+    color:var(--text);
+    display:flex;
+    justify-content:center;
+    padding:32px 12px;
+  }
+  .phone{
+    width:390px;
+    max-width:100%;
+    height:820px;
+    background:var(--bg);
+    border-radius:44px;
+    border:10px solid #0d0a12;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    box-shadow:0 40px 80px -20px rgba(0,0,0,0.6);
+  }
+  .statusbar{height:14px;}
+  .screen{
+    flex:1;
+    overflow-y:auto;
+    padding:20px 20px 10px;
+    position:relative;
+  }
+  .screen::-webkit-scrollbar{display:none;}
+
+  /* ---------- Header ---------- */
+  h1.month{
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:30px;
+    margin:6px 0 2px;
+    letter-spacing:0.2px;
+  }
+  .subrow{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:18px;
+  }
+  .yearline{color:var(--text-muted);font-size:13px;letter-spacing:1px;text-transform:uppercase;}
+  .navarrows{display:flex;gap:10px;}
+  .navarrows button{
+    width:30px;height:30px;border-radius:50%;border:1px solid var(--line);
+    background:var(--surface);color:var(--text);font-size:14px;cursor:pointer;
+  }
+
+  /* ---------- Calendar grid ---------- */
+  .weekdays{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:6px;}
+  .weekdays span{
+    text-align:center;font-size:11px;color:var(--text-muted);
+    letter-spacing:0.5px;text-transform:uppercase;
+  }
+  .days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+  .day{
+    aspect-ratio:1;
+    border-radius:16px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    position:relative;
+    cursor:pointer;
+    font-size:14px;
+    color:var(--text-muted);
+    background:transparent;
+    transition:transform .15s ease;
+  }
+  .day.blank{visibility:hidden;}
+  .day:active{transform:scale(0.93);}
+  .day.today{
+    background:var(--surface-2);
+    color:var(--text);
+    font-weight:700;
+    box-shadow:0 0 0 1.5px var(--gold);
+  }
+  .day.has-memory{
+    background:radial-gradient(circle at 50% 30%, #e8637a3d, transparent 70%);
+    color:var(--text);
+    font-weight:600;
+  }
+  .day .num{margin-bottom:2px;}
+  .day .heart{font-size:12px;line-height:1;}
+  .day .count{
+    position:absolute;bottom:5px;right:7px;
+    font-size:8px;color:var(--gold);font-weight:800;
+  }
+
+  /* ---------- FAB ---------- */
+  .fab{
+    position:absolute;
+    right:20px;bottom:88px;
+    width:58px;height:58px;border-radius:50%;
+    background:linear-gradient(135deg,var(--rose),#c9455f);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 12px 24px -8px rgba(232,99,122,0.6);
+    border:none;color:white;font-size:26px;cursor:pointer;
+  }
+
+  /* ---------- Bottom nav ---------- */
+  .tabbar{
+    display:flex;
+    border-top:1px solid var(--line);
+    background:#1a1421;
+    padding:10px 6px 18px;
+  }
+  .tab{
+    flex:1;text-align:center;background:none;border:none;color:var(--text-muted);
+    font-family:'Manrope';font-size:10.5px;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+  }
+  .tab.active{color:var(--rose);}
+  .tab .icon{font-size:18px;}
+
+  /* ---------- Cards / posts ---------- */
+  .backrow{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+  .backbtn{
+    width:32px;height:32px;border-radius:50%;background:var(--surface);
+    border:1px solid var(--line);color:var(--text);cursor:pointer;
+  }
+  .daytitle{font-family:'Fraunces';font-style:italic;font-size:22px;}
+
+  .post-card{
+    background:var(--surface);
+    border-radius:22px;
+    padding:16px;
+    margin-bottom:16px;
+    border:1px solid var(--line);
+  }
+  .post-media{
+    width:100%;height:200px;border-radius:16px;overflow:hidden;margin-bottom:12px;
+    background:linear-gradient(135deg,#3a2c47,#4a3556);
+    display:flex;align-items:center;justify-content:center;
+    font-size:34px;color:#ffffff55;
+  }
+  .post-meta{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .avatar{
+    width:26px;height:26px;border-radius:50%;
+    background:linear-gradient(135deg,var(--gold),var(--rose));
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#231b2c;
+  }
+  .post-meta .who{font-size:12.5px;font-weight:700;}
+  .post-meta .time{font-size:11px;color:var(--text-muted);margin-left:auto;}
+  .post-title{font-family:'Fraunces';font-size:17px;margin:0 0 4px;}
+  .post-caption{font-size:13.5px;color:#d8cfd6;line-height:1.5;margin:0 0 10px;}
+  .post-actions{display:flex;gap:16px;font-size:12.5px;color:var(--text-muted);}
+  .post-actions span{display:flex;align-items:center;gap:5px;cursor:pointer;}
+  .post-actions .liked{color:var(--rose);}
+
+  /* ---------- Add Memory form ---------- */
+  label.field-label{font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted);display:block;margin:16px 0 6px;}
+  .field{
+    width:100%;background:var(--surface);border:1px solid var(--line);border-radius:14px;
+    padding:12px 14px;color:var(--text);font-family:'Manrope';font-size:14px;
+  }
+  textarea.field{resize:none;min-height:80px;}
+  .media-picker{
+    display:flex;gap:8px;flex-wrap:wrap;
+  }
+  .media-slot{
+    width:72px;height:72px;border-radius:14px;background:var(--surface);
+    border:1.5px dashed var(--line);display:flex;align-items:center;justify-content:center;
+    font-size:22px;color:var(--text-muted);cursor:pointer;
+  }
+  .media-slot.filled{border-style:solid;background:linear-gradient(135deg,#3a2c47,#4a3556);color:#fff;}
+  .publish-btn{
+    width:100%;margin-top:22px;padding:15px;border:none;border-radius:16px;
+    background:linear-gradient(135deg,var(--rose),#c9455f);color:white;font-weight:800;
+    font-size:14.5px;letter-spacing:0.3px;cursor:pointer;
+  }
+
+  /* ---------- Settings / invite ---------- */
+  .settings-row{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:14px 4px;border-bottom:1px solid var(--line);font-size:14px;
+  }
+  .settings-row .label{display:flex;align-items:center;gap:10px;}
+  .toggle{
+    width:38px;height:22px;border-radius:20px;background:var(--surface-2);position:relative;cursor:pointer;
+  }
+  .toggle.on{background:var(--rose);}
+  .toggle .knob{
+    position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:white;
+    transition:left .15s ease;
+  }
+  .toggle.on .knob{left:18px;}
+
+  .code-box{
+    background:var(--surface);border:1px solid var(--line);border-radius:18px;
+    padding:22px;text-align:center;margin:16px 0;
+  }
+  .code-box .code{
+    font-family:'Fraunces';font-size:30px;letter-spacing:6px;color:var(--gold);margin:10px 0;
+  }
+  .pill-btn{
+    background:var(--surface-2);border:1px solid var(--line);color:var(--text);
+    border-radius:12px;padding:10px 16px;font-size:13px;cursor:pointer;font-weight:600;
+  }
+  .section-title{font-family:'Fraunces';font-style:italic;font-size:20px;margin:4px 0 10px;}
+  .helper{color:var(--text-muted);font-size:12.5px;line-height:1.5;}
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="statusbar"></div>
+  <div class="screen" id="screen"></div>
+  <div class="tabbar" id="tabbar"></div>
+</div>
+
+<script>
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const WEEKDAYS = ["S","M","T","W","T","F","S"];
+
+let state = {
+  tab: 'calendar',
+  viewYear: 2026,
+  viewMonth: 7, // August (0-indexed)
+  selectedDate: null,
+  postsByDate: {
+    "2026-08-15": [
+      {id:1, author:"You", authorInitial:"Y", title:"Sunset at the lake", caption:"We stayed until the sky went completely orange. Best kind of quiet.", time:"7:42 PM", media:"📷📷", liked:true},
+      {id:2, author:"Mira", authorInitial:"M", title:"", caption:"Found this little café you'd have loved. Saved it for next time.", time:"11:03 AM", media:"📷", liked:false}
+    ],
+    "2026-08-02": [
+      {id:3, author:"Mira", authorInitial:"M", title:"One year today", caption:"Can't believe it's already been a year. Here's to many more.", time:"9:15 AM", media:"🎥", liked:true}
+    ],
+    "2026-07-28": [
+      {id:4, author:"You", authorInitial:"Y", title:"", caption:"Road trip playlist was perfect. 6 hours flew by.", time:"3:30 PM", media:"📷📷📷", liked:false}
+    ]
+  },
+  draftMedia: 0,
+  notifNewMemory: true,
+  notifComment: true
+};
+
+function dateKey(y,m,d){ return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
+
+function render(){
+  renderTabbar();
+  const s = document.getElementById('screen');
+  if(state.tab==='calendar') s.innerHTML = calendarScreen();
+  else if(state.tab==='add') s.innerHTML = addMemoryScreen();
+  else if(state.tab==='feed') s.innerHTML = feedScreen();
+  else if(state.tab==='settings') s.innerHTML = settingsScreen();
+  else if(state.tab==='day') s.innerHTML = dayScreen();
+}
+
+function renderTabbar(){
+  const tabs = [
+    {id:'calendar', icon:'📅', label:'Calendar'},
+    {id:'add', icon:'✚', label:'Add Memory'},
+    {id:'feed', icon:'✦', label:'Our Memories'},
+    {id:'settings', icon:'⚙', label:'Settings'}
+  ];
+  document.getElementById('tabbar').innerHTML = tabs.map(t=>`
+    <button class="tab ${state.tab===t.id || (state.tab==='day' && t.id==='calendar') ? 'active':''}" onclick="setTab('${t.id}')">
+      <span class="icon">${t.icon}</span>${t.label}
+    </button>`).join('');
+}
+
+function setTab(t){ state.tab=t; render(); }
+
+function calendarScreen(){
+  const y = state.viewYear, m = state.viewMonth;
+  const firstDay = new Date(y,m,1).getDay();
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  const today = new Date(2026,7,15); // fixed "today" = Aug 15 2026 for demo
+
+  let cells = '';
+  for(let i=0;i<firstDay;i++) cells += `<div class="day blank"></div>`;
+  for(let d=1; d<=daysInMonth; d++){
+    const key = dateKey(y,m,d);
+    const posts = state.postsByDate[key];
+    const isToday = (y===today.getFullYear() && m===today.getMonth() && d===today.getDate());
+    let cls = 'day';
+    if(isToday) cls += ' today';
+    if(posts) cls += ' has-memory';
+    cells += `<div class="${cls}" onclick="openDay('${key}')">
+        <span class="num">${d}</span>
+        ${posts ? `<span class="heart">❤️</span>` : ''}
+        ${posts && posts.length>1 ? `<span class="count">${posts.length}</span>` : ''}
+      </div>`;
+  }
+
+  return `
+    <div class="subrow">
+      <div>
+        <div class="yearline">${y}</div>
+        <h1 class="month">${MONTHS[m]}</h1>
+      </div>
+      <div class="navarrows">
+        <button onclick="shiftMonth(-1)">‹</button>
+        <button onclick="shiftMonth(1)">›</button>
+      </div>
+    </div>
+    <div class="weekdays">${WEEKDAYS.map(w=>`<span>${w}</span>`).join('')}</div>
+    <div class="days">${cells}</div>
+    <button class="fab" onclick="setTab('add')">✚</button>
+  `;
+}
+
+function shiftMonth(dir){
+  state.viewMonth += dir;
+  if(state.viewMonth>11){state.viewMonth=0; state.viewYear++;}
+  if(state.viewMonth<0){state.viewMonth=11; state.viewYear--;}
+  render();
+}
+
+function openDay(key){
+  state.selectedDate = key;
+  state.tab = 'day';
+  render();
+}
+
+function dayScreen(){
+  const key = state.selectedDate;
+  const posts = state.postsByDate[key] || [];
+  const [y,m,d] = key.split('-').map(Number);
+  const label = `${MONTHS[m-1]} ${d}, ${y}`;
+
+  return `
+    <div class="backrow">
+      <button class="backbtn" onclick="setTab('calendar')">‹</button>
+      <div class="daytitle">${label}</div>
+    </div>
+    ${posts.length ? posts.map(postCard).join('') : `<p class="helper">No memories yet on this date.</p>`}
+  `;
+}
+
+function feedScreen(){
+  const all = Object.entries(state.postsByDate)
+    .flatMap(([key,posts])=>posts.map(p=>({...p,key})))
+    .sort((a,b)=> b.key.localeCompare(a.key));
+  return `
+    <div class="section-title">Our Memories</div>
+    <p class="helper" style="margin-bottom:14px;">Every memory, newest first.</p>
+    ${all.map(postCard).join('')}
+  `;
+}
+
+function postCard(p){
+  return `
+    <div class="post-card">
+      <div class="post-media">${p.media}</div>
+      <div class="post-meta">
+        <div class="avatar">${p.authorInitial}</div>
+        <div class="who">${p.author}</div>
+        <div class="time">${p.time}</div>
+      </div>
+      ${p.title ? `<div class="post-title">${p.title}</div>` : ''}
+      <p class="post-caption">${p.caption}</p>
+      <div class="post-actions">
+        <span class="${p.liked?'liked':''}">❤️ ${p.liked?'Loved':'Love'}</span>
+        <span>💬 Comment</span>
+      </div>
+    </div>
+  `;
+}
+
+function addMemoryScreen(){
+  const defaultDate = state.selectedDate || "2026-08-15";
+  return `
+    <div class="section-title">Add Memory</div>
+    <label class="field-label">Date</label>
+    <input class="field" type="date" value="${defaultDate}">
+
+    <label class="field-label">Photos &amp; videos</label>
+    <div class="media-picker">
+      ${[0,1,2].map(i=>`<div class="media-slot ${i<state.draftMedia?'filled':''}" onclick="addDraftMedia()">${i<state.draftMedia?'📷':'✚'}</div>`).join('')}
+    </div>
+
+    <label class="field-label">Title (optional)</label>
+    <input class="field" type="text" placeholder="Give this memory a name">
+
+    <label class="field-label">Caption</label>
+    <textarea class="field" placeholder="Write about this moment..."></textarea>
+
+    <button class="publish-btn" onclick="publishDemo()">Publish memory</button>
+  `;
+}
+
+function addDraftMedia(){
+  if(state.draftMedia<3) state.draftMedia++;
+  render();
+}
+
+function publishDemo(){
+  state.draftMedia = 0;
+  state.tab = 'calendar';
+  render();
+  alert("In the real app this saves the post, drops a heart on the calendar, and syncs instantly to your partner.");
+}
+
+function settingsScreen(){
+  return `
+    <div class="section-title">Settings</div>
+
+    <div class="code-box">
+      <div class="helper">Your invitation code</div>
+      <div class="code">7K2P-QXR9</div>
+      <button class="pill-btn" onclick="alert('Code copied — share it with your partner. It expires in 72 hours and works once.')">Copy code</button>
+    </div>
+
+    <div class="settings-row">
+      <div class="label">👤 Partner</div>
+      <div class="helper">Mira · Connected</div>
+    </div>
+    <div class="settings-row">
+      <div class="label">❤️ New memory alerts</div>
+      <div class="toggle ${state.notifNewMemory?'on':''}" onclick="toggleNotif('notifNewMemory')"><div class="knob"></div></div>
+    </div>
+    <div class="settings-row">
+      <div class="label">💬 Comment alerts</div>
+      <div class="toggle ${state.notifComment?'on':''}" onclick="toggleNotif('notifComment')"><div class="knob"></div></div>
+    </div>
+    <div class="settings-row">
+      <div class="label">🗑 Recently deleted</div>
+      <div class="helper">0 items</div>
+    </div>
+    <div class="settings-row">
+      <div class="label">⬇ Export memories</div>
+      <div class="helper">›</div>
+    </div>
+    <div class="settings-row">
+      <div class="label" style="color:#e8637a;">Delete account</div>
+      <div class="helper">›</div>
+    </div>
+  `;
+}
+
+function toggleNotif(key){
+  state[key] = !state[key];
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
